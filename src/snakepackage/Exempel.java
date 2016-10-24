@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class Exempel {
-	// private Brick[][] brickArray;
+	 private Brick[][] brickArray;
 
 	 /**
 	  * Metod som hämtar textfilen från datorn
