@@ -46,6 +46,7 @@ public class Exempel {
      }
      
 
+     
      /**
       * Metod som initierar alla variabler, hämtar rader 
       * @param parsedText ArrayList med kartan
