@@ -4,63 +4,98 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Iterator;
 import java.util.Stack;
 
 public class Exempel {
 	private Brick[][] brickArray;
+	
+	private class Coords {
+		private int x;
+		private int y;
+		
+		public Coords(int x, int y) {
+			this.x = x;
+			this.y = y;
+		}
+		
+		public String toString() {
+			return x + "," + y;
+		}
+	}
 
+	public void checkOne() {
+		brickArray[3][0].setVisited(true);
+		brickArray[3][2].setVisited(true);
+		Coords coords = getNeighbor(3, 1);
+		System.out.println(coords.x + "," + coords.y);
+	}
+	
 	public void checkDFS() {
-		Stack<Brick> s = new Stack<Brick>();
-		System.out.println("x: " + brickArray[0][0].x + " y: " + brickArray[0][0].y);
-		s.push(brickArray[0][0]);
-
-		while (!s.isEmpty()) {
-			Brick brick = s.peek();
-
-			List<Brick> neighbors = getNeighbors(brickArray, brick.x, brick.y);
-			if (!neighbors.isEmpty()) {
-				for (Brick b : neighbors) {
-					if (!b.isVisited() && !b.isObstacle()) {
-						System.out.println("x: " + b.x + " y: " + b.y + " ");
-						brick.setVisited(true);
-						s.push(b);
+		ArrayList<Coords> coordList = new ArrayList<Coords>();
+		int count = 0;
+		Stack<Coords> s = new Stack<Coords>();
+		// push first node
+		s.push(new Coords(0, 0));
+		brickArray[0][0].setVisited(true);
+		
+		while(!s.isEmpty()) {
+			Coords coords = s.pop();
+			if(coords != null) {
+				Coords neighborCoords = getNeighbor(coords.x, coords.y);
+				Brick currentBrick = brickArray[coords.x][coords.y];
+				if(neighborCoords != null) {
+					Brick nextBrick = brickArray[neighborCoords.x][neighborCoords.y];
+					
+					if(!nextBrick.isObstacle() && !nextBrick.isVisited()) {
+						Coords nextCoord = new Coords(neighborCoords.x, neighborCoords.y);
+						coordList.add(nextCoord);
+						count++;
+						s.push(nextCoord);
+						//brickArray[neighborCoords.x][neighborCoords.y].setVisited(true);
 					}
 				}
-			} else {
-				s.pop();
 			}
 		}
+		
+		printMatrix(coordList, count);
+	}
+	
+	private void printMatrix(ArrayList<Coords> coordList, int count) {
+		System.out.println(count);
+		for(Coords coord : coordList) {
+			System.out.println(coord.x + "," + coord.y);
+		}
 	}
 
-	private List<Brick> getNeighbors(Brick[][] matrix, int x, int y) {
-		List<Brick> neighbors = new ArrayList<Brick>();
+	private Coords getNeighbor(int x, int y) {
+		Coords neighbor = null;
 
-		if (isValidPoint(matrix, x - 1, y)) {
-			neighbors.add(brickArray[x - 1][y]);
-		}
-		if (isValidPoint(matrix, x + 1, y)) {
-			neighbors.add(brickArray[x + 1][y]);
-		}
-		if (isValidPoint(matrix, x, y - 1)) {
-			neighbors.add(brickArray[x][y - 1]);
-		}
-		if (isValidPoint(matrix, x, y + 1)) {
-			neighbors.add(brickArray[x][y + 1]);
+		if (isValidPoint(x - 1, y)) {
+			neighbor = new Coords(x - 1, y);
+ 		} 
+		if (isValidPoint(x + 1, y)) {
+			neighbor = new Coords(x + 1, y);
+		} 
+		if (isValidPoint(x, y - 1)) {
+			neighbor = new Coords(x, y - 1);
+		} 
+		if (isValidPoint(x, y + 1)) {
+			neighbor = new Coords(x, y + 1);
 		}
 
-		return neighbors;
+		return neighbor;
 	}
 
-	private boolean isValidPoint(Brick[][] matrix, int x, int y) {
-		return !(x < 0 || x >= matrix.length || y < 0 || y >= matrix.length) && !matrix[x][y].isObstacle();
+	private boolean isValidPoint(int x, int y) {
+		return !(x < 0 || x >= brickArray.length || y < 0 || y >= brickArray.length);
 	}
 
 	/**
-	 * Metod som hämtar textfilen från datorn
+	 * Metod som hï¿½mtar textfilen frï¿½n datorn
 	 * 
 	 * @param textToParse
-	 *            Sökvägen där textfilen ligger på datorn
+	 *            Sï¿½kvï¿½gen dï¿½r textfilen ligger pï¿½ datorn
 	 */
 	public void parseTextFile(String textToParse) {
 		ArrayList<String> splitted = new ArrayList<String>();
@@ -87,7 +122,7 @@ public class Exempel {
 	}
 
 	/**
-	 * Metod som initierar alla variabler, hämtar rader
+	 * Metod som initierar alla variabler, hï¿½mtar rader
 	 * 
 	 * @param parsedText
 	 *            ArrayList med kartan
@@ -105,28 +140,28 @@ public class Exempel {
 		// Initierar brickorna och hindren i spelet.
 		initializeBricks();
 
-		// En 3:a då första positionen på första hindret är [3] enligt input.txt
+		// En 3:a dï¿½ fï¿½rsta positionen pï¿½ fï¿½rsta hindret ï¿½r [3] enligt input.txt
 		int indexCounter = 3;
 
-		// Loop som körs lika många ggr som det finns hinder.
+		// Loop som kï¿½rs lika mï¿½nga ggr som det finns hinder.
 		for (int i = 0; i < nbrOfObstacles; i++) {
 			obstacle_X = Integer.parseInt(parsedText.get(indexCounter));
 			obstacle_Y = Integer.parseInt(parsedText.get(indexCounter + 1));
 			brickArray[obstacle_X][obstacle_Y].setIsObstacle(true);
 
-			// Öka med 2 pga av varje hinder representeras av [x],[y]
+			// ï¿½ka med 2 pga av varje hinder representeras av [x],[y]
 			indexCounter += 2;
 		}
 	}
 
 	/**
-	 * Metod som skapar lika många brick-objekt som det finns rader & kolumner
-	 * och lägger dom i brick-Arrayen.
+	 * Metod som skapar lika mï¿½nga brick-objekt som det finns rader & kolumner
+	 * och lï¿½gger dom i brick-Arrayen.
 	 */
 	private void initializeBricks() {
 		for (int x = 0; x < brickArray.length; x++) {
 			for (int y = 0; y < brickArray[x].length; y++) {
-				brickArray[x][y] = new Brick(x, y);
+				brickArray[x][y] = new Brick();
 			}
 		}
 	}
