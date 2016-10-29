@@ -1,18 +1,20 @@
 package AlexSnake;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Stack;
 
-public class Exempel {
+public class Snake {
 	private Brick[][] brickArray;
 	
 	private class Coords {
 		private int x;
 		private int y;
+		private Coords parent;
+		private Coords child;
 		
 		public Coords(int x, int y) {
 			this.x = x;
@@ -23,71 +25,112 @@ public class Exempel {
 			return x + "," + y;
 		}
 	}
-
-	public void checkOne() {
-		brickArray[3][0].setVisited(true);
-		brickArray[3][2].setVisited(true);
-		Coords coords = getNeighbor(3, 1);
-		System.out.println(coords.x + "," + coords.y);
-	}
 	
 	public void checkDFS() {
-		ArrayList<Coords> coordList = new ArrayList<Coords>();
-		int count = 0;
-		Stack<Coords> s = new Stack<Coords>();
+		Stack<Coords> stack = new Stack<Coords>();
 		// push first node
-		s.push(new Coords(0, 0));
-		brickArray[0][0].setVisited(true);
+		Coords root = new Coords(0, 0);
+		stack.push(root);
 		
-		while(!s.isEmpty()) {
-			Coords coords = s.pop();
+		// boolean to check if coord has neighbor in matrix
+		boolean hasNeighbor;
+		while(!stack.isEmpty()) {
+			hasNeighbor = false;
+			// pop coord from stack
+			Coords coords = stack.pop();
 			if(coords != null) {
-				Coords neighborCoords = getNeighbor(coords.x, coords.y);
-				Brick currentBrick = brickArray[coords.x][coords.y];
-				if(neighborCoords != null) {
-					Brick nextBrick = brickArray[neighborCoords.x][neighborCoords.y];
+				// get neighbor coords
+				ArrayList<Coords> neighborCoords = getNeighbors(coords.x, coords.y);
+				// if there are neighbors
+				if(!neighborCoords.isEmpty()) {
+					// get current brick
+					Brick currentBrick = brickArray[coords.x][coords.y];
+					// iterate for each neighbor
+					for(Coords neighbor : neighborCoords) {
+						// get neighbor brick
+						Brick nextBrick = brickArray[neighbor.x][neighbor.y];
+						// if neighbor brick is not obstacle or visited
+						if(!nextBrick.isObstacle() && !nextBrick.isVisited()) {
+							// set current brick to visited
+							currentBrick.setVisited(true);
+							
+							// instantiate new coord
+							Coords nextCoord = new Coords(neighbor.x, neighbor.y);
+							// set child and parent
+							coords.child = nextCoord;
+							nextCoord.parent = coords;
+							// push new coord to stack
+							stack.push(nextCoord);
+							
+							// current brick has valid neighbor, break iteration
+							hasNeighbor = true;
+							break;
+						}
+					}
 					
-					if(!nextBrick.isObstacle() && !nextBrick.isVisited()) {
-						Coords nextCoord = new Coords(neighborCoords.x, neighborCoords.y);
-						coordList.add(nextCoord);
-						count++;
-						s.push(nextCoord);
-						//brickArray[neighborCoords.x][neighborCoords.y].setVisited(true);
+					// if coord has no neighbors
+					if(!hasNeighbor) {
+						// coord has a parent
+						if(coords.parent != null) {
+							// set current brick to visited
+							currentBrick.setVisited(true);
+							
+							// push parent coord into stack
+							stack.push(coords.parent);
+						}
 					}
 				}
 			}
 		}
 		
-		printMatrix(coordList, count);
+		// create list
+		ArrayList<Coords> coordList = new ArrayList<Coords>();
+		// set current coord to first coord
+		Coords currCoords = root;
+		while (currCoords != null) {
+			// add children to list
+			coordList.add(currCoords.child);
+			currCoords = currCoords.child;
+		}
+		
+		// print result
+		printMatrix(coordList);
 	}
 	
-	private void printMatrix(ArrayList<Coords> coordList, int count) {
-		System.out.println(count);
+	private void printMatrix(ArrayList<Coords> coordList) {
+		System.out.println(coordList.size());
 		for(Coords coord : coordList) {
-			System.out.println(coord.x + "," + coord.y);
+			if(coord != null) {
+				System.out.println(coord.x + "," + coord.y);
+			}
 		}
 	}
 
-	private Coords getNeighbor(int x, int y) {
-		Coords neighbor = null;
+	private ArrayList<Coords> getNeighbors(int x, int y) {
+		ArrayList<Coords> neighbors = new ArrayList<Coords>();
 
-		if (isValidPoint(x - 1, y)) {
-			neighbor = new Coords(x - 1, y);
- 		} 
-		if (isValidPoint(x + 1, y)) {
-			neighbor = new Coords(x + 1, y);
-		} 
-		if (isValidPoint(x, y - 1)) {
-			neighbor = new Coords(x, y - 1);
-		} 
+		// down
 		if (isValidPoint(x, y + 1)) {
-			neighbor = new Coords(x, y + 1);
+			neighbors.add(new Coords(x, y + 1));
 		}
+		// up
+		if (isValidPoint(x, y - 1)) {
+			neighbors.add(new Coords(x, y - 1));
+		} 
+		// right
+		if (isValidPoint(x + 1, y)) {
+			neighbors.add(new Coords(x + 1, y));
+		} 
+		// left
+		if (isValidPoint(x - 1, y)) {
+			neighbors.add(new Coords(x - 1, y));
+ 		}
 
-		return neighbor;
+		return neighbors;
 	}
 
 	private boolean isValidPoint(int x, int y) {
+		// check bounds
 		return !(x < 0 || x >= brickArray.length || y < 0 || y >= brickArray.length);
 	}
 
