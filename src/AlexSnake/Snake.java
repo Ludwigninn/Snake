@@ -7,25 +7,49 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Stack;
 
+/**
+ * Snake finds a way through a two dimensional array
+ * 
+ * @author Alexander Johansson, Ludwig Ninn
+ *
+ */
 public class Snake {
 	private Brick[][] brickArray;
 	
+	/**
+	 * Coords stores x, y coordinates along with Coords-parent/children
+	 * 
+	 * @author Alexander Johansson, Ludwig Ninn
+	 *
+	 */
 	private class Coords {
 		private int x;
 		private int y;
 		private Coords parent;
 		private Coords child;
 		
+		/**
+		 * Constructor for Coords - inserts x and y values
+		 * @param x Integer
+		 * @param y Integer
+		 */
 		public Coords(int x, int y) {
 			this.x = x;
 			this.y = y;
 		}
 		
+		/**
+		 * toString prints the objects coord data (x,y)
+		 */
 		public String toString() {
 			return x + "," + y;
 		}
 	}
 	
+	/**
+	 * Method checks the brickArray using a DFS search, in conjunction with using a Stack for pushing Coords-objects
+	 * This method will find a way for the snake through and past the obstacles specified
+	 */
 	public void checkDFS() {
 		Stack<Coords> stack = new Stack<Coords>();
 		// push first node
@@ -97,38 +121,92 @@ public class Snake {
 		printMatrix(coordList);
 	}
 	
+	/**
+	 * Prints the current snake path and snake coordinates
+	 * @param coordList ArrayList<Coords>
+	 */
 	private void printMatrix(ArrayList<Coords> coordList) {
+		// print snake path size
 		System.out.println(coordList.size());
+		// print all coordinates
 		for(Coords coord : coordList) {
 			if(coord != null) {
 				System.out.println(coord.x + "," + coord.y);
 			}
 		}
+		
+		System.out.println();
+		
+		// print a visual representation of the matrix - S is where the snake has travelled, X is obstacles, 0 is non-visited bricks
+		for(int x = 0; x < brickArray.length; x++) {
+			for(int y = 0; y < brickArray[x].length; y++) {
+				Brick brick = brickArray[x][y];
+				if(checkIfVisited(coordList, x, y)){
+					System.out.print("S ");
+				} else if(brick.isObstacle()) {
+					System.out.print("X ");
+				} else {
+					System.out.print("0 ");
+				}
+			}
+			System.out.println();
+		}
+	}
+	
+	/**
+	 * Checks if snake has travelled on x, y depending if it exists in given ArrayList
+	 * @param coords ArrayList<Coords>
+	 * @param x Integer
+	 * @param y Integer
+	 * @return boolean true if found, false if not
+	 */
+	private boolean checkIfVisited(ArrayList<Coords> coords, int x, int y) {
+		for(Coords coord : coords) {
+			if(coord != null) {
+				if(coord.x == x && coord.y == y) {
+					return true;
+				}
+			}
+		}
+		
+		return false;
 	}
 
+	/**
+	 * Finds valid neighbour coordinates from given x, y
+	 * @param x Integer
+	 * @param y Integer
+	 * @return ArrayList<Coords>
+	 */
 	private ArrayList<Coords> getNeighbors(int x, int y) {
 		ArrayList<Coords> neighbors = new ArrayList<Coords>();
 
-		// down
-		if (isValidPoint(x, y + 1)) {
-			neighbors.add(new Coords(x, y + 1));
-		}
 		// up
 		if (isValidPoint(x, y - 1)) {
 			neighbors.add(new Coords(x, y - 1));
-		} 
-		// right
-		if (isValidPoint(x + 1, y)) {
-			neighbors.add(new Coords(x + 1, y));
 		} 
 		// left
 		if (isValidPoint(x - 1, y)) {
 			neighbors.add(new Coords(x - 1, y));
  		}
+		// down
+		if (isValidPoint(x, y + 1)) {
+			neighbors.add(new Coords(x, y + 1));
+		}
+		// right
+		if (isValidPoint(x + 1, y)) {
+			neighbors.add(new Coords(x + 1, y));
+		}
 
 		return neighbors;
 	}
 
+	/**
+	 * Checks if point is valid and in boundaries
+	 * @param x Integer
+	 * @param y Integer
+	 * @return boolean true if valid, false if not
+	 */
 	private boolean isValidPoint(int x, int y) {
 		// check bounds
 		return !(x < 0 || x >= brickArray.length || y < 0 || y >= brickArray.length);
